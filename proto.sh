@@ -1,46 +1,64 @@
 #!/bin/bash
 
-set -e
+set -eou pipefail
 
-# Generate protobuf code
-find src -type f \( -iname '*_pb2.py' -o -iname '*_pb2.pyi' -o -iname '*_pb2_grpc.py' \) -delete
-protoc-wrapper -I/usr/include  \
-        --proto_path=google/api=proto/google/api \
-        --proto_path=protoc-gen-openapiv2/options=proto/protoc-gen-openapiv2/options \
-        --grpc-python_out=src \
-        --pyi_out=src \
-        --python_out=src \
-        google/api/annotations.proto \
-        google/api/http.proto \
-        protoc-gen-openapiv2/options/annotations.proto \
-        protoc-gen-openapiv2/options/openapiv2.proto
-protoc-wrapper -I/usr/include  \
-        --proto_path=proto/app \
-        --grpc-python_out=src/app/proto \
-        --pyi_out=src/app/proto \
-        --python_out=src/app/proto \
-        permission.proto \
-        service.proto
+shopt -s globstar
 
-# Generate gateway code
-rm -rf gateway/pkg/pb/*
-mkdir -p gateway/pkg/pb
-protoc-wrapper -I/usr/include  \
-        --proto_path=proto/app \
-        --go_out=gateway/pkg/pb \
-        --go_opt=paths=source_relative \
-        --go-grpc_out=require_unimplemented_servers=false:gateway/pkg/pb \
-        --go-grpc_opt=paths=source_relative \
-        --grpc-gateway_out=logtostderr=true:gateway/pkg/pb \
-        --grpc-gateway_opt paths=source_relative \
-        permission.proto \
-        service.proto
+clean_generated_files() {
+  find "$1" -type f \( \
+    -name '*_pb2.py' -o \
+    -name '*_pb2.pyi' -o \
+    -name '*_pb2_grpc.py' -o \
+    -name '*_grpc.py' -o \
+    -name '*.pyc' \
+  \) -delete
 
-# Generate swagger.json
-rm -rf gateway/apidocs/*
-protoc-wrapper -I/usr/include  \
-        --proto_path=proto/app \
-        --openapiv2_out gateway/apidocs \
-        --openapiv2_opt logtostderr=true \
-        --openapiv2_opt use_go_templates=true \
-        service.proto
+  find "$1" -type d -name '__pycache__' -exec rm -rf {} +
+}
+
+PROTO_DIR="${1:-proto}"
+OUT_DIR="${2:-src}"
+GATEWAY_DIR="${3:-gateway/pkg/pb}"
+APIDOCS_DIR="${4:-gateway/apidocs}"
+
+# Ensure output directory exists.
+mkdir -p "${OUT_DIR}"
+
+# Clean previously generated files.
+clean_generated_files "${OUT_DIR}"
+
+# Generate protobuf files.
+protoc-wrapper \
+  -I"${PROTO_DIR}" \
+  --python_out="${OUT_DIR}" \
+  --pyi_out="${OUT_DIR}" \
+  --grpc-python_out="${OUT_DIR}" \
+  "${PROTO_DIR}"/**/*.proto
+
+# Clean previously generated files.
+rm -rf "${GATEWAY_DIR}"/* && \
+  mkdir -p "${GATEWAY_DIR}"
+
+# Generate gateway code.
+protoc-wrapper \
+  -I"${PROTO_DIR}" \
+  --go_out="${GATEWAY_DIR}" \
+  --go_opt=paths=source_relative \
+  --go-grpc_out=require_unimplemented_servers=false:"${GATEWAY_DIR}" \
+  --go-grpc_opt=paths=source_relative \
+  --grpc-gateway_out=logtostderr=true:"${GATEWAY_DIR}" \
+  --grpc-gateway_opt paths=source_relative \
+  "${PROTO_DIR}"/*.proto
+
+
+# Clean previously generated files.
+rm -rf "${APIDOCS_DIR}"/* && \
+  mkdir -p "${APIDOCS_DIR}"
+
+# Generate swagger.json file.
+protoc-wrapper \
+  -I"${PROTO_DIR}" \
+  --openapiv2_out "${APIDOCS_DIR}" \
+  --openapiv2_opt logtostderr=true \
+  --openapiv2_opt use_go_templates=true \
+  "${PROTO_DIR}"/*.proto

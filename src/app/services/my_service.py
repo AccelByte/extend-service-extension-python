@@ -16,7 +16,7 @@ from accelbyte_py_sdk.api.cloudsave import models as cs_models
 
 from accelbyte_grpc_plugin.utils import create_aio_rpc_error
 
-from ..proto.service_pb2 import (
+from service_pb2 import (
     CreateOrUpdateGuildProgressRequest,
     CreateOrUpdateGuildProgressResponse,
     GetGuildProgressRequest,
@@ -24,7 +24,7 @@ from ..proto.service_pb2 import (
     DESCRIPTOR,
 )
 
-from ..proto.service_pb2_grpc import ServiceServicer
+from service_pb2_grpc import ServiceServicer
 
 
 class AsyncService(ServiceServicer):

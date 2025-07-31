@@ -1,19 +1,20 @@
 environs==14.1.1
-Flask==2.2.2
-Werkzeug==2.2.2
+Flask==3.0.3
+Werkzeug==3.0.4
+
+googleapis-common-protos==1.63.0
 grpcio==1.48.1
 grpcio-health-checking==1.48.1
 grpcio-reflection==1.48.1
-prometheus-client==0.20.0
 opentelemetry-api==1.14.0
 opentelemetry-sdk==1.14.0
-opentelemetry-exporter-prometheus==1.12.0rc1
+opentelemetry-exporter-prometheus==0.35b0
 opentelemetry-exporter-zipkin-proto-http==1.14.0
 opentelemetry-instrumentation-grpc==0.35b0
 opentelemetry-instrumentation-httpx==0.35b0
 opentelemetry-instrumentation-requests==0.35b0
 opentelemetry-propagator-b3==1.19.0
-googleapis-common-protos==1.63.0
+prometheus-client==0.20.0
 protobuf==3.20.3
 python-logging-loki==0.3.1
 

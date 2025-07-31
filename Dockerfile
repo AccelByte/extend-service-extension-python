@@ -1,66 +1,119 @@
-# Copyright (c) 2024 AccelByte Inc. All Rights Reserved.
+# Copyright (c) 2025 AccelByte Inc. All Rights Reserved.
 # This is licensed software from AccelByte Inc, for limitations
 # and restrictions contact your company contract manager.
 
-# gRPC Gateway Gen
-FROM --platform=$BUILDPLATFORM rvolosatovs/protoc:4.1.0 AS grpc-gateway-gen
-WORKDIR /build
-COPY gateway gateway
-COPY proto proto
-COPY src src
-COPY proto.sh .
-RUN bash proto.sh
+# ----------------------------------------
+# Stage 1: Protoc Code Generation
+# ----------------------------------------
+FROM --platform=$BUILDPLATFORM rvolosatovs/protoc:4.1.0 AS proto-builder
 
-# gRPC Gateway Builder
+# Set working directory.
+WORKDIR /build
+
+# Copy proto sources and generator script.
+COPY proto.sh .
+COPY proto/ proto/
+
+# Make script executable and run it.
+RUN chmod +x proto.sh && \
+    ./proto.sh
+
+
+
+# ----------------------------------------
+# Stage 2: gRPC Gateway Builder
+# ----------------------------------------
 FROM --platform=$BUILDPLATFORM golang:1.24 AS grpc-gateway-builder
+
 ARG TARGETOS
 ARG TARGETARCH
 ARG GOOS=$TARGETOS
 ARG GOARCH=$TARGETARCH
 ARG CGO_ENABLED=0
+
+# Set working directory.
 WORKDIR /build
-COPY gateway/go.mod gateway/go.sum .
+
+# Copy gateway go module files.
+COPY gateway/go.mod gateway/go.sum ./
+
+# Download dependencies.
 RUN go mod download
+
+# Copy application code.
 COPY gateway/ .
+
+# Copy generated protobuf files from stage 1.
 RUN rm -rf pkg/pb
-COPY --from=grpc-gateway-gen /build/gateway/pkg/pb ./pkg/pb
+COPY --from=proto-builder /build/gateway/pkg/pb ./pkg/pb
+
+# Build application code.
 RUN go build -v -o /output/$TARGETOS/$TARGETARCH/grpc_gateway .
 
-# Extend App
+
+
+# ----------------------------------------
+# Stage 3: Runtime Container
+# ----------------------------------------
 FROM ubuntu:22.04
 
 ARG TARGETOS
 ARG TARGETARCH
 
+# Install Python and Upgrade Pip
 RUN apt update && \
-    apt install -y python3-pip python-is-python3 && \
+    apt install -y --no-install-recommends \
+        python3-pip python-is-python3 && \
     python -m pip install --no-cache-dir --upgrade pip && \
     apt upgrade -y && \
     apt dist-upgrade -y && \
+    apt purge -y && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Keeps Python from generating .pyc files in the container
+# Keeps Python from generating .pyc files in the container.
 ENV PYTHONDONTWRITEBYTECODE=1
-# Turns off buffering for easier container logging
+
+# Turns off buffering for easier container logging.
 ENV PYTHONUNBUFFERED=1
 
-# Install pip requirements
+# Set working directory.
 WORKDIR /app
-COPY requirements.txt requirements.txt
-RUN python -m pip install --no-cache-dir --force-reinstall --requirement requirements.txt
-COPY --from=grpc-gateway-gen /build/gateway/apidocs ./apidocs
-COPY gateway/third_party third_party
-COPY src .
-COPY --from=grpc-gateway-builder /output/$TARGETOS/$TARGETARCH/grpc_gateway .
+
+# Install Python dependencies.
+COPY requirements.txt .
+RUN python -m pip install \
+    --no-cache-dir \
+    --force-reinstall \
+    --requirement requirements.txt
+
+# Copy apidocs code from stage 1.
+COPY --from=proto-builder /build/gateway/apidocs ./apidocs
+
+# Copy gateway code from stage 2.
+COPY --from=grpc-gateway-builder /output/$TARGETOS/$TARGETARCH/grpc_gateway ./
+
+# Copy other gateway code.
+COPY gateway/third_party third_party/
+
+# Copy application code.
+COPY src/ .
+
+# Copy generated protobuf files from stage 1.
+COPY --from=proto-builder /build/src/ .
+
+# Copy entrypoint script.
 COPY wrapper.sh .
 RUN chmod +x wrapper.sh
 
-# Plugin arch gRPC server port
+# Plugin Arch gRPC Server Port.
 EXPOSE 6565
-# gRPC gateway port
+
+# gRPC Gateway Port.
 EXPOSE 8000
-# Prometheus /metrics web server port
+
+# Prometheus /metrics Web Server Port.
 EXPOSE 8080
 
+# Entrypoint.
 CMD ["sh", "/app/wrapper.sh"]
