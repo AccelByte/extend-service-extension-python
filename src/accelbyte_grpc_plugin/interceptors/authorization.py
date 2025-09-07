@@ -65,11 +65,15 @@ class AuthorizationServerInterceptor(ServerInterceptor):
 
             try:
                 resource = method_options.Extensions[permission_resource_descriptor]
+                if not resource:
+                    resource = None
             except KeyError:
                 pass
 
             try:
                 action = method_options.Extensions[permission_action_descriptor]
+                if action == 0:
+                    action = None
             except KeyError:
                 pass
 
