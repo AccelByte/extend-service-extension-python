@@ -28,11 +28,11 @@ mkdir -p "${OUT_DIR}"
 clean_generated_files "${OUT_DIR}"
 
 # Generate protobuf files.
-protoc-wrapper \
+python -m grpc_tools.protoc \
   -I"${PROTO_DIR}" \
   --python_out="${OUT_DIR}" \
   --pyi_out="${OUT_DIR}" \
-  --grpc-python_out="${OUT_DIR}" \
+  --grpc_python_out="${OUT_DIR}" \
   "${PROTO_DIR}"/**/*.proto
 
 # Clean previously generated files.
@@ -40,7 +40,7 @@ rm -rf "${GATEWAY_DIR}"/* && \
   mkdir -p "${GATEWAY_DIR}"
 
 # Generate gateway code.
-protoc-wrapper \
+protoc \
   -I"${PROTO_DIR}" \
   --go_out="${GATEWAY_DIR}" \
   --go_opt=paths=source_relative \
@@ -55,7 +55,7 @@ rm -rf "${APIDOCS_DIR}"/* && \
   mkdir -p "${APIDOCS_DIR}"
 
 # Generate swagger.json file.
-protoc-wrapper \
+protoc \
   -I"${PROTO_DIR}" \
   --openapiv2_out "${APIDOCS_DIR}" \
   --openapiv2_opt logtostderr=true \

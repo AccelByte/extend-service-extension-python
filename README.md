@@ -56,6 +56,28 @@ Customizing your Extend Service Extension app involves modifying the`service.pro
 └── ...
 ```
 
+## Development Options
+
+### Option 1: Dev Container (Recommended)
+
+The easiest way to get started is using the provided Dev Container configuration, which includes all necessary tools and dependencies pre-configured.
+
+**Requirements:**
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) 4.30+ or Docker Engine v23.0+
+- [Visual Studio Code](https://code.visualstudio.com/) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+**Quick Start:**
+1. Open the project in VS Code
+2. Click "Reopen in Container" when prompted (or use Command Palette: "Dev Containers: Reopen in Container")
+3. Wait for the container to build and dependencies to install automatically
+4. Start developing!
+
+> :bulb: The Dev Container automatically installs Python 3.10, Go 1.24, and all required dependencies.
+
+### Option 2: Local Development
+
+Alternatively, you can set up the development environment locally on your machine.
+
 ## Prerequisites
 
 1. Windows 11 WSL2 or Linux Ubuntu 22.04 or macOS 14+ with the following tools installed:
