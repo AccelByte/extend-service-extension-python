@@ -1,0 +1,80 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run: App",
+      "type": "shell",
+      "command": "${workspaceFolder}/venv/bin/python",
+      "args": [
+        "-m",
+        "app"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PYTHONPATH": "src"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run: Gateway",
+      "type": "shell",
+      "command": "go",
+      "args": [
+        "run",
+        "."
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/gateway",
+        "env": {
+          "BASE_PATH": "${input:basePath}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run: App and Gateway",
+      "dependsOn": [
+        "Run: Gateway",
+        "Run: App"
+      ],
+      "dependsOrder": "parallel"
+    },
+    {
+      "label": "Proto: Generate",
+      "type": "shell",
+      "command": "${workspaceFolder}/.devcontainer/proto.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Format (Black)",
+      "type": "shell",
+      "command": "${workspaceFolder}/venv/bin/black",
+      "args": [
+        "${input:path}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "path",
+      "type": "promptString",
+      "description": "Target path",
+      "default": "src"
+    },
+    {
+      "id": "basePath",
+      "type": "promptString",
+      "description": "Gateway BASE_PATH env",
+      "default": "/service"
+    }
+  ]
+}
