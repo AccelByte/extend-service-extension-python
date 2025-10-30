@@ -3,6 +3,39 @@ set -e
 
 echo "🚀 Setting up development environment..."
 
+# Fix Docker socket permissions if mounted
+if [ -S /var/run/docker.sock ]; then
+    echo "🔧 Configuring Docker socket access..."
+    DOCKER_GID=$(stat -c '%g' /var/run/docker.sock 2>/dev/null || echo "")
+    if [ -n "$DOCKER_GID" ] && [ "$DOCKER_GID" != "65534" ]; then
+        # Get current docker group GID if it exists
+        EXISTING_DOCKER_GID=$(getent group docker | cut -d: -f3 2>/dev/null || echo "")
+        
+        if [ -z "$EXISTING_DOCKER_GID" ]; then
+            # Create docker group with correct GID
+            sudo groupadd -g "$DOCKER_GID" docker 2>/dev/null || true
+        elif [ "$EXISTING_DOCKER_GID" != "$DOCKER_GID" ]; then
+            # Update docker group GID to match socket
+            sudo groupmod -g "$DOCKER_GID" docker 2>/dev/null || true
+        fi
+        
+        # Ensure current user is in docker group
+        if ! groups "$USER" | grep -q docker; then
+            sudo usermod -aG docker "$USER" 2>/dev/null || true
+        fi
+        
+        echo "✅ Docker group configured (GID: $DOCKER_GID)"
+        echo "⚠️  Note: Docker group membership requires container restart to take effect"
+        echo "   The docker-wrapper.sh script will handle permissions until then"
+    fi
+fi
+
+# Ensure docker wrapper is executable
+if [ -f .devcontainer/docker-wrapper.sh ]; then
+    chmod +x .devcontainer/docker-wrapper.sh
+    echo "✅ Docker wrapper script is executable"
+fi
+
 # Create Python virtual environment if needed
 if [ ! -d "venv" ]; then
     echo "📦 Creating Python virtual environment..."

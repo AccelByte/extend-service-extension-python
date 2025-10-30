@@ -15,6 +15,9 @@ RUN apt-get update \
     wget \
     unzip \
     #
+    # Docker
+    docker-cli \
+    #
     # Install Protocol Buffers compiler
     && PROTOC_VERSION=21.9 \
     && wget -O protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip \
@@ -49,10 +52,13 @@ ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
+# Create docker group and add user to it for Docker socket access
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME
+    && chmod 0440 /etc/sudoers.d/$USERNAME \
+    && groupadd docker || true \
+    && usermod -aG docker $USERNAME
 
 # Create workspace and GOPATH directories
 RUN mkdir -p /workspace && chown $USERNAME:$USERNAME /workspace \
