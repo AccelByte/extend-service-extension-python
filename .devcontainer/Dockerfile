@@ -77,6 +77,8 @@ RUN ln -sf /usr/bin/python3.10 /usr/local/bin/python3 \
 # Switch to non-root user
 USER $USERNAME
 
+# Install Python development tools
+RUN pip install --user grpcio-tools==1.76.0 mypy-protobuf==3.6.0 fillenv==1.0.0
 
 # Install Go Language Server (required by Go extension)
 RUN go install -v golang.org/x/tools/gopls@latest
