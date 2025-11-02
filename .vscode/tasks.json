@@ -61,6 +61,18 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Create .env File",
+      "type": "shell",
+      "command":  "fillenv",
+      "args": [
+        "${workspaceFolder}/.env.template"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
     }
   ],
   "inputs": [
