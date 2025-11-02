@@ -69,12 +69,14 @@ RUN groupadd --gid $USER_GID $USERNAME \
 RUN mkdir -p /workspace && chown $USERNAME:$USERNAME /workspace \
     && mkdir -p /go && chown $USERNAME:$USERNAME /go
 
+# Set up Python symlinks
+RUN ln -sf /usr/bin/python3.10 /usr/local/bin/python3 \
+    && ln -sf /usr/bin/python3.10 /usr/local/bin/python \
+    && ln -sf /usr/bin/pip3 /usr/local/bin/pip
+
 # Switch to non-root user
 USER $USERNAME
 
-# Set up Python symlinks for the user
-RUN sudo ln -sf /usr/bin/python3.10 /usr/local/bin/python3 \
-    && sudo ln -sf /usr/bin/python3.10 /usr/local/bin/python
 
 # Install Go Language Server (required by Go extension)
 RUN go install -v golang.org/x/tools/gopls@latest
