@@ -80,7 +80,8 @@
       "username": "vscode",
       "userUid": "automatic",
       "userGid": "automatic"
-    }
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
   // Run setup script after container creation
   "postCreateCommand": ".devcontainer/post-create.sh",
@@ -105,13 +106,5 @@
     }
   },
   // Run as non-root user for security
-  "remoteUser": "vscode",
-  // Mount Docker socket for containerized development
-  "mounts": [
-    {
-      "source": "/var/run/docker.sock",
-      "target": "/var/run/docker.sock",
-      "type": "bind"
-    }
-  ]
+  "remoteUser": "vscode"
 }

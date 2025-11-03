@@ -15,8 +15,12 @@ RUN apt-get update \
     wget \
     unzip \
     #
-    # Docker
-    docker-cli \
+    # Install Python 3.10 and pip
+    && apt-get -y install \
+    python3.10 \
+    python3.10-dev \
+    python3.10-venv \
+    python3-pip \
     #
     # Install Protocol Buffers compiler
     && PROTOC_VERSION=21.9 \
@@ -24,13 +28,6 @@ RUN apt-get update \
     && unzip protoc.zip -d /usr/local \
     && rm protoc.zip \
     && chmod +x /usr/local/bin/protoc \
-    #
-    # Install Python 3.10 and pip
-    && apt-get -y install \
-    python3.10 \
-    python3.10-dev \
-    python3.10-venv \
-    python3-pip \
     #
     # Install Go 1.24
     && wget -O go.tar.gz https://go.dev/dl/go1.24.9.linux-amd64.tar.gz \
