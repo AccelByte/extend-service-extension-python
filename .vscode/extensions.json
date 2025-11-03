@@ -13,7 +13,6 @@
     "eamodio.gitlens", // Advanced Git insights, blame, history, comparisons
 
     // Config files
-    "EditorConfig.EditorConfig", // Consistent formatting across editors
     "ms-vscode.vscode-json",     // JSON syntax highlighting, validation, formatting
     "redhat.vscode-yaml",        // YAML syntax highlighting, validation, formatting
 
