@@ -38,7 +38,7 @@ RUN apt-get update \
     && rm go.tar.gz \
     #
     # Install Extend Helper CLI
-    && EXTEND_HELPER_CLI_VERSION=0.0.6 \
+    && EXTEND_HELPER_CLI_VERSION=0.0.7 \
     && wget -O /usr/local/bin/extend-helper-cli https://github.com/AccelByte/extend-helper-cli/releases/download/v${EXTEND_HELPER_CLI_VERSION}/extend-helper-cli-linux_amd64 \
     && chmod +x /usr/local/bin/extend-helper-cli \
     #
