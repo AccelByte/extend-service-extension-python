@@ -50,23 +50,19 @@
         "go.toolsManagement.checkForUpdates": "local",
         "go.useLanguageServer": true,
         "go.gopath": "/go",
-        "go.goroot": "/usr/local/go"
+        "go.goroot": "/usr/local/go",
+        "terminal.integrated.defaultProfile.linux": "bash"
       },
       "mcp": {
         "servers": {}
       }
     }
   },
-  // Install common utilities (zsh, oh-my-zsh, etc.)
+  // Install common utilities
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
-      "installZsh": true,
-      "configureZshAsDefaultShell": true,
-      "installOhMyZsh": true,
-      "upgradePackages": true,
-      "username": "vscode",
-      "userUid": "automatic",
-      "userGid": "automatic"
+      "installZsh": false,
+      "username": "vscode"
     },
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
