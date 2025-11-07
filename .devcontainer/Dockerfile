@@ -54,13 +54,11 @@ ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-# Create docker group and add user to it for Docker socket access
+# Create user group, user account, and configure passwordless sudo access
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME \
-    && groupadd docker || true \
-    && usermod -aG docker $USERNAME
+    && chmod 0440 /etc/sudoers.d/$USERNAME
 
 # Create workspace and GOPATH directories
 RUN mkdir -p /workspace && chown $USERNAME:$USERNAME /workspace \
