@@ -4,42 +4,43 @@ import permission_pb2 as _permission_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from collections.abc import Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class CreateOrUpdateGuildProgressRequest(_message.Message):
-    __slots__ = ["guild_progress", "namespace"]
-    GUILD_PROGRESS_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("namespace", "guild_progress")
     NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    guild_progress: GuildProgress
+    GUILD_PROGRESS_FIELD_NUMBER: _ClassVar[int]
     namespace: str
+    guild_progress: GuildProgress
     def __init__(self, namespace: _Optional[str] = ..., guild_progress: _Optional[_Union[GuildProgress, _Mapping]] = ...) -> None: ...
 
 class CreateOrUpdateGuildProgressResponse(_message.Message):
-    __slots__ = ["guild_progress"]
+    __slots__ = ("guild_progress",)
     GUILD_PROGRESS_FIELD_NUMBER: _ClassVar[int]
     guild_progress: GuildProgress
     def __init__(self, guild_progress: _Optional[_Union[GuildProgress, _Mapping]] = ...) -> None: ...
 
 class GetGuildProgressRequest(_message.Message):
-    __slots__ = ["guild_id", "namespace"]
-    GUILD_ID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("namespace", "guild_id")
     NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    guild_id: str
+    GUILD_ID_FIELD_NUMBER: _ClassVar[int]
     namespace: str
+    guild_id: str
     def __init__(self, namespace: _Optional[str] = ..., guild_id: _Optional[str] = ...) -> None: ...
 
 class GetGuildProgressResponse(_message.Message):
-    __slots__ = ["guild_progress"]
+    __slots__ = ("guild_progress",)
     GUILD_PROGRESS_FIELD_NUMBER: _ClassVar[int]
     guild_progress: GuildProgress
     def __init__(self, guild_progress: _Optional[_Union[GuildProgress, _Mapping]] = ...) -> None: ...
 
 class GuildProgress(_message.Message):
-    __slots__ = ["guild_id", "namespace", "objectives"]
+    __slots__ = ("guild_id", "namespace", "objectives")
     class ObjectivesEntry(_message.Message):
-        __slots__ = ["key", "value"]
+        __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
