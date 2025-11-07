@@ -53,20 +53,7 @@
         "go.goroot": "/usr/local/go"
       },
       "mcp": {
-        "servers": {
-          "devcon-extend-sdk": {
-            "type": "stdio",
-            "command": "/workspace/.devcontainer/docker-wrapper.sh",
-            "args": [
-              "run",
-              "--rm",
-              "--interactive",
-              "--env", "TRANSPORT=stdio",
-              "--env", "CONFIG_DIR=config/python",
-              "ghcr.io/accelbyte/ags-extend-sdk-mcp-server:2025.7.0"
-            ]
-          }
-        }
+        "servers": {}
       }
     }
   },
