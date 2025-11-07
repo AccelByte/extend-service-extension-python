@@ -4,38 +4,41 @@ FROM ubuntu:22.04
 # Avoid warnings by switching to noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
 
+ARG PROTOC_VERSION=21.9
+ARG PYTHON_VERSION=3.10
+ARG GO_VERSION=1.24.10
+ARG EXTEND_HELPER_CLI_VERSION=0.0.8
+
 # Configure apt and install packages
 RUN apt-get update \
+    && apt-get -y install --no-install-recommends \
     #
     # Install essential development tools
-    && apt-get -y install \
-    git \
     build-essential \
+    ca-certificates \
+    git \
     sudo \
-    wget \
     unzip \
+    wget \
     #
-    # Install Python 3.10 and pip
-    && apt-get -y install \
-    python3.10 \
-    python3.10-dev \
-    python3.10-venv \
+    # Install Python and pip
+    python${PYTHON_VERSION} \
+    python${PYTHON_VERSION}-dev \
+    python${PYTHON_VERSION}-venv \
     python3-pip \
     #
     # Install Protocol Buffers compiler
-    && PROTOC_VERSION=21.9 \
     && wget -O protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip \
     && unzip protoc.zip -d /usr/local \
     && rm protoc.zip \
     && chmod +x /usr/local/bin/protoc \
     #
     # Install Go 1.24
-    && wget -O go.tar.gz https://go.dev/dl/go1.24.9.linux-amd64.tar.gz \
+    && wget -O go.tar.gz https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go.tar.gz \
     && rm go.tar.gz \
     #
     # Install Extend Helper CLI
-    && EXTEND_HELPER_CLI_VERSION=0.0.7 \
     && wget -O /usr/local/bin/extend-helper-cli https://github.com/AccelByte/extend-helper-cli/releases/download/v${EXTEND_HELPER_CLI_VERSION}/extend-helper-cli-linux_amd64 \
     && chmod +x /usr/local/bin/extend-helper-cli \
     #
@@ -43,6 +46,11 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
+
+# Set up Python symlinks
+RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/local/bin/python3 \
+    && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/local/bin/python \
+    && ln -sf /usr/bin/pip3 /usr/local/bin/pip
 
 # Set up Go environment
 ENV GOROOT=/usr/local/go
@@ -63,11 +71,6 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # Create workspace and GOPATH directories
 RUN mkdir -p /workspace && chown $USERNAME:$USERNAME /workspace \
     && mkdir -p /go && chown $USERNAME:$USERNAME /go
-
-# Set up Python symlinks
-RUN ln -sf /usr/bin/python3.10 /usr/local/bin/python3 \
-    && ln -sf /usr/bin/python3.10 /usr/local/bin/python \
-    && ln -sf /usr/bin/pip3 /usr/local/bin/pip
 
 # Switch to non-root user
 USER $USERNAME

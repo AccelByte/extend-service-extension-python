@@ -5,7 +5,78 @@
 # ----------------------------------------
 # Stage 1: Protoc Code Generation
 # ----------------------------------------
-FROM --platform=$BUILDPLATFORM rvolosatovs/protoc:4.1.0 AS proto-builder
+FROM --platform=$BUILDPLATFORM ubuntu:22.04 AS proto-builder
+
+# Avoid warnings by switching to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG PROTOC_VERSION=21.9
+ARG PYTHON_VERSION=3.10
+ARG GO_VERSION=1.24.10
+
+# Configure apt and install packages
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    #
+    # Install essential development tools
+    build-essential \
+    ca-certificates \
+    git \
+    unzip \
+    wget \
+    #
+    # Install Python and pip
+    python${PYTHON_VERSION} \
+    python${PYTHON_VERSION}-dev \
+    python${PYTHON_VERSION}-venv \
+    python3-pip \
+    #
+    # Detect architecture for downloads
+    && ARCH_SUFFIX=$(case "$(uname -m)" in \
+        x86_64) echo "x86_64" ;; \
+        aarch64) echo "aarch_64" ;; \
+        *) echo "x86_64" ;; \
+       esac) \
+    && GOARCH_SUFFIX=$(case "$(uname -m)" in \
+        x86_64) echo "amd64" ;; \
+        aarch64) echo "arm64" ;; \
+        *) echo "amd64" ;; \
+       esac) \
+    #
+    # Install Protocol Buffers compiler
+    && wget -O protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-${ARCH_SUFFIX}.zip \
+    && unzip protoc.zip -d /usr/local \
+    && rm protoc.zip \
+    && chmod +x /usr/local/bin/protoc \
+    #
+    # Install Go
+    && wget -O go.tar.gz https://go.dev/dl/go${GO_VERSION}.linux-${GOARCH_SUFFIX}.tar.gz \
+    && tar -C /usr/local -xzf go.tar.gz \
+    && rm go.tar.gz \
+    #
+    # Clean up
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Python symlinks
+RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/local/bin/python3 \
+    && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/local/bin/python \
+    && ln -sf /usr/bin/pip3 /usr/local/bin/pip
+
+# Install Python tools required for proto generation.
+RUN pip install --no-cache-dir grpcio-tools==1.76.0 mypy-protobuf==3.6.0
+
+# Set up Go environment
+ENV GOROOT=/usr/local/go
+ENV GOPATH=/go
+ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+
+# Install protoc Go tools and plugins
+RUN go install -v google.golang.org/protobuf/cmd/protoc-gen-go@latest \
+    && go install -v google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest \
+    && go install -v github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest \
+    && go install -v github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
 
 # Set working directory.
 WORKDIR /build

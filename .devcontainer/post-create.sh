@@ -25,12 +25,11 @@ cd ..
 echo "🔧 Setting up scripts..."
 chmod +x proto.sh
 chmod +x wrapper.sh
-chmod +x .devcontainer/proto.sh
 
 # Generate protobuf files
 echo "✏️ Generating protocol buffer files..."
 if command -v protoc &> /dev/null; then
-    .devcontainer/proto.sh || echo "⚠️  Protocol buffer generation skipped"
+    ./proto.sh || echo "⚠️  Protocol buffer generation skipped"
 else
     echo "⚠️  protoc not found"
 fi

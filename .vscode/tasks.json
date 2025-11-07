@@ -44,7 +44,7 @@
     {
       "label": "Proto: Generate",
       "type": "shell",
-      "command": "${workspaceFolder}/.devcontainer/proto.sh",
+      "command": "${workspaceFolder}/proto.sh",
       "options": {
         "cwd": "${workspaceFolder}"
       },

@@ -6,20 +6,23 @@ SHELL := /bin/bash
 
 PROJECT_NAME := $(shell basename "$$(pwd)")
 GOLANG_IMAGE := golang:1.24-alpine3.21
-PROTOC_IMAGE := rvolosatovs/protoc:4.1.0
+PROTOC_IMAGE := proto-builder
 
 BUILD_CACHE_VOLUME := $(shell echo '$(PROJECT_NAME)' | sed 's/[^a-zA-Z0-9_-]//g')-build-cache
 
-.PHONY: build proto
+.PHONY: build proto_image proto
 
 build: build_server build_gateway
 
-proto:
+proto_image:
+	docker build --target proto-builder -t $(PROTOC_IMAGE) .
+
+proto: proto_image
 	docker run --tty --rm --user $$(id -u):$$(id -g) \
 		--volume $$(pwd):/build \
 		--workdir /build \
 		--entrypoint /bin/bash \
-		rvolosatovs/protoc:4.1.0 \
+		$(PROTOC_IMAGE) \
 			proto.sh
 
 build_server: proto
