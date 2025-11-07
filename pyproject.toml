@@ -43,7 +43,7 @@ dependencies = [
         # prometheus
         "opentelemetry-exporter-prometheus",
         # zipkin
-        "opentelemetry-exporter-zipkin-proto-http",
+        "opentelemetry-exporter-zipkin-json==1.18.0",
 
     # prometheus
     "prometheus-client",

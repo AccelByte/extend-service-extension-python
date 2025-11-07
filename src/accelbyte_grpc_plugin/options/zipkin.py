@@ -5,7 +5,7 @@
 from typing import Union
 
 import opentelemetry.trace
-from opentelemetry.exporter.zipkin.proto.http import ZipkinExporter
+from opentelemetry.exporter.zipkin.json import ZipkinExporter
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 from ..app import App, AppOptionApplyOrderEnum, AppOptionBase
