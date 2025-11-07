@@ -50,7 +50,7 @@ class AppOptionPrometheus(AppOptionBase):
                     use_reloader=False,
                 )
             ).start()
-            app.otel_metric_readers.append(PrometheusMetricReader(prefix=prefix))
+            app.otel_metric_readers.append(PrometheusMetricReader(prefix))
 
     def get_order(self) -> Union[int, AppOptionApplyOrderEnum]:
         return AppOptionApplyOrderEnum.SET_OTEL_METER_PROVIDER - 1
