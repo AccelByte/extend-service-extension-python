@@ -20,8 +20,11 @@
     "ms-vscode.makefile-tools", // Makefile IntelliSense and targets UI
     "timonwong.shellcheck",     // Shell script static analysis (sh, bash, zsh)
 
-    // Containers and YAML
+    // Containers
     "ms-azuretools.vscode-docker", // Dockerfile/docker-compose authoring, images/containers management
+
+    // Docs
+    "bierner.markdown-mermaid", // Mermaid diagrams in Markdown files
 
     // Python Core: runtime/debugging, language server
     "ms-python.python",         // Python extension (debugging, testing, env)
