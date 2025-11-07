@@ -1,5 +1,9 @@
 -r requirements.txt
 
-black
+grpcio-testing==1.76.0
 grpcio-tools==1.76.0
 mypy-protobuf==3.6.0
+
+black
+pylint
+tap.py
