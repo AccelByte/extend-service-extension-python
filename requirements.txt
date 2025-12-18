@@ -18,7 +18,7 @@ prometheus-client==0.23.1
 protobuf==6.33.0
 python-logging-loki==0.3.1
 
-accelbyte-py-sdk==0.79.0
+accelbyte-py-sdk==0.81.1
 bitarray
 httpx[http2]
 mmh3
