@@ -43,8 +43,6 @@ DEFAULT_ENABLE_REFLECTION: bool = True
 DEFAULT_ENABLE_ZIPKIN: bool = True
 
 DEFAULT_PLUGIN_GRPC_SERVER_AUTH_ENABLED: bool = True
-DEFAULT_PLUGIN_GRPC_SERVER_AUTH_RESOURCE: Optional[str] = None
-DEFAULT_PLUGIN_GRPC_SERVER_AUTH_ACTION: Optional[int] = None
 
 DEFAULT_PLUGIN_GRPC_SERVER_LOGGING_ENABLED: bool = False
 DEFAULT_PLUGIN_GRPC_SERVER_METRICS_ENABLED: bool = True
@@ -134,12 +132,6 @@ def create_options(sdk: AccelByteSDK, env: Env, logger: Logger) -> List[AppOptio
                 options.append(
                     AppOptionGRPCInterceptor(
                         interceptor=AuthorizationServerInterceptor(
-                            resource=env.str(
-                                "RESOURCE", DEFAULT_PLUGIN_GRPC_SERVER_AUTH_RESOURCE
-                            ),
-                            action=env.int(
-                                "ACTION", DEFAULT_PLUGIN_GRPC_SERVER_AUTH_ACTION
-                            ),
                             namespace=namespace,
                             token_validator=CachingTokenValidator(sdk=sdk),
                         )

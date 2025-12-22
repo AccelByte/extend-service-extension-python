@@ -2,7 +2,7 @@
 # This is licensed software from AccelByte Inc, for limitations
 # and restrictions contact your company contract manager.
 
-from typing import Awaitable, Callable, List, Optional
+from typing import Awaitable, Callable, Optional, Tuple
 
 import grpc
 from grpc import HandlerCallDetails, RpcMethodHandler, StatusCode
@@ -11,7 +11,10 @@ from grpc.aio import ServerInterceptor
 from google.protobuf.descriptor import MethodDescriptor
 from google.protobuf.descriptor_pool import Default as DescriptorPool
 
-from accelbyte_grpc_plugin.utils import get_headers_from_metadata, get_propagator_header_keys
+from accelbyte_grpc_plugin.utils import (
+    get_headers_from_metadata,
+    get_propagator_header_keys,
+)
 
 from accelbyte_py_sdk.services.auth import parse_access_token
 from accelbyte_py_sdk.token_validation import TokenValidatorProtocol
@@ -23,22 +26,12 @@ from accelbyte_py_sdk.token_validation._ctypes import (
 
 
 class AuthorizationServerInterceptor(ServerInterceptor):
-    whitelisted_methods: List[str] = [
-        "/grpc.health.v1.Health/Check",
-        "/grpc.health.v1.Health/Watch",
-        "/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo",
-    ]
-
     def __init__(
         self,
         token_validator: TokenValidatorProtocol,
-        resource: Optional[str] = None,
-        action: Optional[int] = None,
         namespace: Optional[str] = None,
     ) -> None:
         self.token_validator = token_validator
-        self.resource = resource
-        self.action = action
         self.namespace = namespace
 
     async def intercept_service(
@@ -47,42 +40,24 @@ class AuthorizationServerInterceptor(ServerInterceptor):
         handler_call_details: HandlerCallDetails,
     ) -> RpcMethodHandler:
         method = getattr(handler_call_details, "method", "")
-        if method in self.whitelisted_methods:
+        method_descriptor = self.get_method_descriptor(method=method)
+
+        if not method_descriptor:
+            return self.create_aio_rpc_error(
+                error="method not found", code=StatusCode.INTERNAL
+            )
+
+        # Check if method requires Bearer authentication from OpenAPI annotations
+        require_token = self.has_bearer_security(method_descriptor)
+
+        # Extract permission extensions
+        resource, action = self.extract_permissions(method_descriptor)
+
+        # Skip auth if no security requirements
+        if not require_token and resource is None and action is None:
             return await continuation(handler_call_details)
 
-        method_descriptor = self.get_method_descriptor(method=method)
-        if not method_descriptor:
-            return self.create_aio_rpc_error(error="method not found", code=StatusCode.INTERNAL)
-
-        resource: Optional[str] = None
-        action: Optional[int] = None
-
-        permission_resource_descriptor = self.get_option_descriptor("permission.resource")
-        permission_action_descriptor = self.get_option_descriptor("permission.action")
-
-        if permission_resource_descriptor and permission_action_descriptor:
-            method_options = method_descriptor.GetOptions()
-
-            try:
-                resource = method_options.Extensions[permission_resource_descriptor]
-                if not resource:
-                    resource = None
-            except KeyError:
-                pass
-
-            try:
-                action = method_options.Extensions[permission_action_descriptor]
-                if action == 0:
-                    action = None
-            except KeyError:
-                pass
-
-        if resource is None:
-            resource = self.resource
-
-        if action is None:
-            action = self.action
-
+        # At this point, either Bearer security or permissions are required
         headers = get_headers_from_metadata(handler_call_details=handler_call_details)
 
         authorization = headers.get("authorization", None)
@@ -96,7 +71,9 @@ class AuthorizationServerInterceptor(ServerInterceptor):
         try:
             # by default, any HTTP calls inside an interceptor does not propagate headers
             propagator_header_keys = get_propagator_header_keys()
-            propagator_headers = {k: v for k, v in headers.items() if k in propagator_header_keys}
+            propagator_headers = {
+                k: v for k, v in headers.items() if k in propagator_header_keys
+            }
 
             token = authorization.removeprefix("Bearer ")
             error = self.token_validator.validate_token(
@@ -177,6 +154,64 @@ class AuthorizationServerInterceptor(ServerInterceptor):
             return option_descriptor
         except KeyError:
             return None
+
+    @staticmethod
+    def extract_permissions(
+        method_descriptor: MethodDescriptor,
+    ) -> Tuple[Optional[str], Optional[int]]:
+        """Extract resource and action from permission extensions"""
+        resource: Optional[str] = None
+        action: Optional[int] = None
+
+        permission_resource_descriptor = (
+            AuthorizationServerInterceptor.get_option_descriptor("permission.resource")
+        )
+        permission_action_descriptor = (
+            AuthorizationServerInterceptor.get_option_descriptor("permission.action")
+        )
+
+        if permission_resource_descriptor and permission_action_descriptor:
+            method_options = method_descriptor.GetOptions()
+
+            try:
+                resource = method_options.Extensions[permission_resource_descriptor]
+                if not resource:
+                    resource = None
+            except KeyError:
+                pass
+
+            try:
+                action = method_options.Extensions[permission_action_descriptor]
+                if action == 0:
+                    action = None
+            except KeyError:
+                pass
+
+        return resource, action
+
+    @staticmethod
+    def has_bearer_security(method_descriptor: MethodDescriptor) -> bool:
+        """Check if method requires Bearer token from OpenAPI v2 security annotation"""
+        try:
+            openapiv2_operation_descriptor = (
+                AuthorizationServerInterceptor.get_option_descriptor(
+                    "grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation"
+                )
+            )
+            if not openapiv2_operation_descriptor:
+                return False
+
+            method_options = method_descriptor.GetOptions()
+            operation = method_options.Extensions[openapiv2_operation_descriptor]
+
+            if operation and hasattr(operation, "security"):
+                for security_obj in operation.security:
+                    if hasattr(security_obj, "security_requirement"):
+                        if "Bearer" in security_obj.security_requirement:
+                            return True
+            return False
+        except (KeyError, AttributeError):
+            return False
 
 
 __all__ = [
