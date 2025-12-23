@@ -76,7 +76,7 @@ RUN mkdir -p /workspace && chown $USERNAME:$USERNAME /workspace \
 USER $USERNAME
 
 # Install Python development tools
-RUN pip install --user grpcio-tools==1.76.0 mypy-protobuf==3.6.0 fillenv==1.0.0
+RUN pip install --user grpcio-tools==1.76.0 mypy-protobuf==4.0.0 fillenv==1.0.0
 
 # Install Go Language Server (required by Go extension)
 RUN go install -v golang.org/x/tools/gopls@latest

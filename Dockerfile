@@ -65,7 +65,7 @@ RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/local/bin/python3 \
     && ln -sf /usr/bin/pip3 /usr/local/bin/pip
 
 # Install Python tools required for proto generation.
-RUN pip install --no-cache-dir grpcio-tools==1.76.0 mypy-protobuf==3.6.0
+RUN pip install --no-cache-dir grpcio-tools==1.76.0 mypy-protobuf==4.0.0
 
 # Set up Go environment
 ENV GOROOT=/usr/local/go
