@@ -14,8 +14,6 @@ from accelbyte_py_sdk import AccelByteSDK
 from accelbyte_py_sdk.api import cloudsave as cs_service
 from accelbyte_py_sdk.api.cloudsave import models as cs_models
 
-from accelbyte_grpc_plugin.utils import create_aio_rpc_error
-
 from service_pb2 import (
     CreateOrUpdateGuildProgressRequest,
     CreateOrUpdateGuildProgressResponse,
@@ -53,7 +51,8 @@ class AsyncService(ServiceServicer):
         self, request: CreateOrUpdateGuildProgressRequest, context: Any
     ) -> CreateOrUpdateGuildProgressResponse:
         if not request.namespace:
-            raise create_aio_rpc_error("", StatusCode.INVALID_ARGUMENT)
+            await context.abort(StatusCode.INVALID_ARGUMENT, "namespace is required")
+            return  # Never reached, but needed for type checking
 
         guild_id = request.guild_progress.guild_id.strip()
         if not guild_id:
@@ -75,7 +74,8 @@ class AsyncService(ServiceServicer):
             sdk=self.sdk,
         )
         if error:
-            raise Exception(error)
+            await context.abort(StatusCode.INTERNAL, str(error))
+            return  # Never reached, but needed for type checking
 
         result = CreateOrUpdateGuildProgressResponse()
         result.guild_progress.guild_id = response.value["guild_id"]
@@ -89,7 +89,8 @@ class AsyncService(ServiceServicer):
         self, request: GetGuildProgressRequest, context: Any
     ) -> GetGuildProgressResponse:
         if not request.namespace:
-            raise create_aio_rpc_error("", StatusCode.INVALID_ARGUMENT)
+            await context.abort(StatusCode.INVALID_ARGUMENT, "namespace is required")
+            return  # Never reached, but needed for type checking
 
         gp_key = self.format_guild_progress_key(request.guild_id.strip())
 
@@ -102,7 +103,8 @@ class AsyncService(ServiceServicer):
             sdk=self.sdk,
         )
         if error:
-            raise Exception(error)
+            await context.abort(StatusCode.INTERNAL, str(error))
+            return  # Never reached, but needed for type checking
 
         result = GetGuildProgressResponse()
         result.guild_progress.guild_id = response.value["guild_id"]
