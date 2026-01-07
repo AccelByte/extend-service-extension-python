@@ -17,6 +17,7 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     git \
+    python3-pip \
     sudo \
     unzip \
     wget \
@@ -37,6 +38,9 @@ RUN apt-get update \
     && wget -O go.tar.gz https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go.tar.gz \
     && rm go.tar.gz \
+    #
+    # Install additional tools
+    && pip3 install --no-cache-dir fillenv \
     #
     # Install Extend Helper CLI
     && wget -O /usr/local/bin/extend-helper-cli https://github.com/AccelByte/extend-helper-cli/releases/download/v${EXTEND_HELPER_CLI_VERSION}/extend-helper-cli-linux_amd64 \
